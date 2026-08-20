@@ -16,7 +16,6 @@ set(KITT_DLL_SOURCES
 
 add_library(kittua SHARED
     ${KITT_DLL_SOURCES}
-    kitt.def
     resources.rc
 )
 
@@ -64,4 +63,5 @@ endif()
 install(TARGETS kittua
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION bin
+    ARCHIVE DESTINATION lib
 )
