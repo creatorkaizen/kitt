@@ -1,0 +1,149 @@
+{
+  "dead_keys": {
+    "Y": {
+      "alone": {
+        "base": "й",
+        "shift": "Й"
+      },
+      "combinations": {
+        "KeyA": {
+          "base": "я",
+          "shift": "Я"
+        },
+        "KeyE": {
+          "base": "є",
+          "shift": "Є"
+        },
+        "KeyISlash": {
+          "base": "ї",
+          "shift": "Ї"
+        },
+        "KeyU": {
+          "base": "ю",
+          "shift": "Ю"
+        }
+      }
+    }
+  },
+  "keys": {
+    "KeyA": {
+      "base": "а",
+      "shift": "А"
+    },
+    "KeyB": {
+      "base": "б",
+      "shift": "Б"
+    },
+    "KeyC": {
+      "base": "ц",
+      "shift": "Ц"
+    },
+    "KeyCCedilla": {
+      "base": "ч",
+      "shift": "Ч"
+    },
+    "KeyD": {
+      "base": "д",
+      "shift": "Д"
+    },
+    "KeyE": {
+      "base": "е",
+      "shift": "Е"
+    },
+    "KeyF": {
+      "base": "ф",
+      "shift": "Ф"
+    },
+    "KeyG": {
+      "base": "ґ",
+      "shift": "Ґ"
+    },
+    "KeyGBreve": {
+      "base": "г",
+      "shift": "Г"
+    },
+    "KeyH": {
+      "base": "х",
+      "shift": "Х"
+    },
+    "KeyI": {
+      "base": "и",
+      "shift": "И"
+    },
+    "KeyISlash": {
+      "base": "і",
+      "shift": "І"
+    },
+    "KeyJ": {
+      "base": "ж",
+      "shift": "Ж"
+    },
+    "KeyK": {
+      "base": "к",
+      "shift": "К"
+    },
+    "KeyL": {
+      "base": "л",
+      "shift": "Л"
+    },
+    "KeyM": {
+      "base": "м",
+      "shift": "М"
+    },
+    "KeyN": {
+      "base": "н",
+      "shift": "Н"
+    },
+    "KeyO": {
+      "base": "о",
+      "shift": "О"
+    },
+    "KeyP": {
+      "base": "п",
+      "shift": "П"
+    },
+    "KeyQ": {
+      "base": "щ",
+      "shift": "Щ"
+    },
+    "KeyR": {
+      "base": "р",
+      "shift": "Р"
+    },
+    "KeyS": {
+      "base": "с",
+      "shift": "С"
+    },
+    "KeySCedilla": {
+      "base": "ш",
+      "shift": "Ш"
+    },
+    "KeyT": {
+      "base": "т",
+      "shift": "Т"
+    },
+    "KeyU": {
+      "base": "у",
+      "shift": "У"
+    },
+    "KeyV": {
+      "base": "в",
+      "shift": "В"
+    },
+    "KeyX": {
+      "base": "ь",
+      "shift": "Ь"
+    },
+    "KeyZ": {
+      "base": "з",
+      "shift": "З"
+    }
+  },
+  "metadata": {
+    "id": "kitt-uk-ua",
+    "language": "uk-UA",
+    "name": "Kitt",
+    "version": "0.1.0"
+  },
+  "schema_version": 1
+}

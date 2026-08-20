@@ -1,0 +1,154 @@
+# Kitt — Ukrainian mnemonic keyboard layout
+#
+# Canonical source of truth. Do not hand-edit generated files instead of this one.
+#
+# Design basis: physical keys of a Turkish Q keyboard (ISO, QWERTY-derived).
+# Mnemonic principle: pressing the key whose Latin/Turkish letter sounds like
+# the Ukrainian letter produces that Ukrainian letter. Turkish-specific keys
+# (Ğ Ü Ş İ Ö Ç) are used where they give a closer phonetic match than a plain
+# QWERTY letter would.
+#
+# Ukrainian iotated vowels (я ю є ї) are produced via a dead key on Y:
+#   Y is "kısa i / y" (й) when typed alone.
+#   Y + A -> я   (ya)
+#   Y + U -> ю   (yu)
+#   Y + E -> є   (ye)
+#   Y + İ -> ї   (yi)
+# This mirrors real Ukrainian pronunciation: all four are "y + vowel".
+
+schema_version: 1
+
+layout:
+  id: kitt-uk-ua
+  name: Kitt
+  description: Ukrainian mnemonic keyboard layout for Turkish Q physical keyboards
+  language: uk-UA
+  version: 0.1.0
+
+physical_layout:
+  family: iso-turkish-q
+
+modifiers:
+  - base
+  - shift
+
+# Dead keys: a key that does not emit a character by itself but modifies the
+# next keystroke. `alone` is what gets emitted if the dead key is released
+# without a matching combination (e.g. followed by a consonant or space).
+dead_keys:
+  Y:
+    alone:
+      base: "й"
+      shift: "Й"
+    combinations:
+      KeyA:
+        base: "я"
+        shift: "Я"
+      KeyU:
+        base: "ю"
+        shift: "Ю"
+      KeyE:
+        base: "є"
+        shift: "Є"
+      KeyISlash:   # İ / I (dotted) physical key
+        base: "ї"
+        shift: "Ї"
+
+keys:
+  # --- direct phonetic matches ---
+  KeyA:
+    base: "а"
+    shift: "А"
+  KeyB:
+    base: "б"
+    shift: "Б"
+  KeyD:
+    base: "д"
+    shift: "Д"
+  KeyE:
+    base: "е"
+    shift: "Е"
+  KeyF:
+    base: "ф"
+    shift: "Ф"
+  KeyK:
+    base: "к"
+    shift: "К"
+  KeyL:
+    base: "л"
+    shift: "Л"
+  KeyM:
+    base: "м"
+    shift: "М"
+  KeyN:
+    base: "н"
+    shift: "Н"
+  KeyO:
+    base: "о"
+    shift: "О"
+  KeyP:
+    base: "п"
+    shift: "П"
+  KeyR:
+    base: "р"
+    shift: "Р"
+  KeyS:
+    base: "с"
+    shift: "С"
+  KeyT:
+    base: "т"
+    shift: "Т"
+  KeyU:
+    base: "у"
+    shift: "У"
+  KeyV:
+    base: "в"
+    shift: "В"
+  KeyZ:
+    base: "з"
+    shift: "З"
+
+  # --- Ukrainian-specific characters, deliberately placed ---
+  KeyC:
+    base: "ц"
+    shift: "Ц"
+  KeyCCedilla:      # Ç physical key
+    base: "ч"
+    shift: "Ч"
+  KeyG:
+    base: "ґ"
+    shift: "Ґ"
+  KeyGBreve:        # Ğ physical key
+    base: "г"
+    shift: "Г"
+  KeyH:
+    base: "х"
+    shift: "Х"
+  KeyI:
+    base: "и"
+    shift: "И"
+  KeyISlash:        # İ / dotted I physical key
+    base: "і"
+    shift: "І"
+  KeyJ:
+    base: "ж"
+    shift: "Ж"
+  KeyQ:
+    base: "щ"
+    shift: "Щ"
+  KeySCedilla:      # Ş physical key
+    base: "ш"
+    shift: "Ш"
+  KeyX:
+    base: "ь"
+    shift: "Ь"
+
+  # --- unused on this layout: keep native Turkish Q behavior (no-op / passthrough) ---
+  # KeyW, KeyOSlash (Ö), KeyUDiaeresis (Ü) are intentionally not remapped.
+
+punctuation:
+  preserve_qwerty_where_possible: true
+
+behavior:
+  caps_lock: letters_only
+  normalize_unicode: NFC

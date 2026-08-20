@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Build artifacts
+build/
+dist/
+
+# Native/Windows toolchain
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+out/
+
+# Editor/OS
+.vscode/
+.idea/
+Thumbs.db
