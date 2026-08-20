@@ -23,9 +23,11 @@ from .validation import (
     ValidationReport,
     validate_layout,
 )
+from .windows import generate_kbdtables_source
 
 DEFAULT_LAYOUT_PATH = "layout/kitt.uk-UA.yaml"
 DEFAULT_DOCS_PATH = "docs/mapping.md"
+DEFAULT_NATIVE_PATH = "src/windows/kitt_tables.c"
 
 
 def _ensure_utf8_stdio() -> None:
@@ -54,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "validate":
         return _run_validate(args.layout)
     if args.command == "generate":
-        return _run_generate(args.layout, args.out)
+        return _run_generate(args.layout, args.out, args.native_out)
 
     parser.print_help()
     return 1
@@ -75,7 +77,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
 
     generate_parser = subparsers.add_parser(
-        "generate", help="generate docs/mapping.md from the layout YAML file"
+        "generate",
+        help="generate docs/mapping.md and the native Windows KBDTABLES "
+        "source from the layout YAML file",
     )
     generate_parser.add_argument(
         "--layout",
@@ -86,6 +90,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--out",
         default=DEFAULT_DOCS_PATH,
         help=f"path to write the generated Markdown to (default: {DEFAULT_DOCS_PATH})",
+    )
+    generate_parser.add_argument(
+        "--native-out",
+        default=DEFAULT_NATIVE_PATH,
+        help="path to write the generated Windows KBDTABLES C source to "
+        f"(default: {DEFAULT_NATIVE_PATH})",
     )
 
     return parser
@@ -112,7 +122,7 @@ def _run_validate(layout_path: str) -> int:
     return 0
 
 
-def _run_generate(layout_path: str, out_path: str) -> int:
+def _run_generate(layout_path: str, out_path: str, native_out_path: str) -> int:
     try:
         spec = parse_layout_file(layout_path)
     except KittError as exc:
@@ -130,6 +140,12 @@ def _run_generate(layout_path: str, out_path: str) -> int:
     out_file.parent.mkdir(parents=True, exist_ok=True)
     out_file.write_text(markdown, encoding="utf-8")
     print(f"Generated {out_file}")
+
+    native_source = generate_kbdtables_source(spec)
+    native_out_file = Path(native_out_path)
+    native_out_file.parent.mkdir(parents=True, exist_ok=True)
+    native_out_file.write_text(native_source, encoding="utf-8")
+    print(f"Generated {native_out_file}")
     return 0
 
 

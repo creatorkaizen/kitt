@@ -21,3 +21,6 @@ out/
 .vscode/
 .idea/
 Thumbs.db
+
+# Claude Code harness state
+.claude/
