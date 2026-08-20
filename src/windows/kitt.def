@@ -1,0 +1,12 @@
+; Kitt native layout DLL export definition.
+;
+; Windows keyboard-layout DLLs are loaded via LoadLibraryEx and
+; expose a single well-known entry point that the OS looks up by
+; name: KbdLayerDescriptor (see kitt_tables.c and
+; KITT_ARCHITECTURE.md section 4/35). No other symbol should be
+; exported.
+
+LIBRARY kittua
+
+EXPORTS
+    KbdLayerDescriptor

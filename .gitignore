@@ -15,6 +15,7 @@ dist/
 *.ilk
 *.exp
 *.lib
+*.dll
 out/
 
 # Editor/OS
