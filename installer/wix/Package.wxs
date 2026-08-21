@@ -73,7 +73,14 @@
       <ComponentGroupRef Id="KittComponents" />
     </Feature>
 
-    <!-- UI: minimal, non-interactive-friendly install (no custom dialogs). -->
+    <!--
+      UI: minimal, non-interactive-friendly install (no custom
+      dialogs). WixUI_Minimal's built-in license page needs a real
+      license file, or it falls back to WiX's own placeholder Lorem
+      ipsum text — WixUILicenseRtf points it at Kitt's actual short
+      license/privacy notice instead.
+    -->
+    <WixVariable Id="WixUILicenseRtf" Value="installer\wix\License.rtf" />
     <ui:WixUI xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" Id="WixUI_Minimal" />
 
   </Package>
