@@ -1,114 +1,115 @@
 # Kitt
 
-**Kitt** is a native Ukrainian mnemonic keyboard layout for Windows, designed
-for the Turkish Q physical keyboard. It lets you type Ukrainian using the key
-whose Latin/Turkish letter sounds like the Ukrainian letter — no separate
-Ukrainian physical keyboard, no on-screen keyboard app, no background
-process.
+**Kitt**, Türkçe Q fiziksel klavyesi için tasarlanmış, Windows için native bir
+Ukraynaca mnemonik klavye düzenidir. Basılan tuşun Latin/Türkçe harfinin sesi
+Ukraynaca harfe nasıl benziyorsa, o mantıkla Ukraynaca yazmanı sağlar — ayrı
+bir Ukraynaca fiziksel klavyeye, ekran klavyesi uygulamasına ya da arka
+planda çalışan bir programa gerek kalmadan.
 
-Kitt installs like any other Windows keyboard layout. Once installed, it
-shows up in the normal Windows language/input switcher next to your other
-layouts. There is no tray icon, no daemon, and nothing running while you are
-not typing.
+Kitt, diğer Windows klavye düzenleri gibi kurulur. Kurulduktan sonra normal
+Windows dil/giriş değiştiricisinde diğer düzenlerinin yanında görünür.
+Görev çubuğunda simgesi olan bir arka plan uygulaması yoktur; yazmadığın
+sürece hiçbir şey çalışmaz.
 
-## What Kitt is not
+## Kitt ne değildir
 
-- not a keyboard-remapping application;
-- not a background process or global keyboard hook;
-- not a cloud service, and does not require a network connection;
-- not an on-screen/virtual keyboard.
+- klavye yeniden eşleme (remapping) uygulaması değildir;
+- arka planda çalışan bir süreç ya da global klavye kancası (hook) değildir;
+- bulut servisi değildir, internet bağlantısı gerektirmez;
+- ekran/sanal klavye değildir.
 
-Kitt is a small native Windows keyboard-layout DLL plus a standard MSI
-installer. See [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md) for the full
-technical design.
+Kitt, küçük bir native Windows klavye-düzeni DLL'i ve standart bir MSI
+kurulum paketinden ibarettir. Tam teknik tasarım için
+[`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md) dosyasına bakabilirsin.
 
-## Supported Windows versions
+## Desteklenen Windows sürümleri
 
 - Windows 10 (x64)
 - Windows 11 (x64)
 
-x86/ARM64 are not built yet; see `KITT_ARCHITECTURE.md` section 23.
+x86/ARM64 henüz derlenmiyor; bkz. `KITT_ARCHITECTURE.md` bölüm 23.
 
-## Installation
+## Kurulum
 
-1. Download the latest `kitt-<version>-x64.msi` from the project's
-   [Releases](../../releases) page, along with its matching `.sha256`
-   checksum file.
-2. (Recommended) verify the checksum before installing:
+1. Projenin [Releases](../../releases) sayfasından en güncel
+   `kitt-<versiyon>-x64.msi` dosyasını, eşleşen `.sha256` checksum dosyasıyla
+   birlikte indir.
+2. (Önerilir) Kurmadan önce checksum'ı doğrula:
 
    ```powershell
-   Get-FileHash kitt-<version>-x64.msi -Algorithm SHA256
+   Get-FileHash kitt-<versiyon>-x64.msi -Algorithm SHA256
    ```
 
-   Compare the output against the contents of the `.sha256` file.
-3. Run the MSI. Windows will prompt for administrator elevation (UAC) —
-   this is expected. Installing a keyboard layout writes to
-   `HKEY_LOCAL_MACHINE` and `%ProgramFiles%`, both of which are
-   machine-wide, admin-only locations.
-4. Once installed, add Kitt through Windows' normal input settings:
-   **Settings → Time & Language → Language & region → Add a keyboard**
-   (or **Windows key + Space** to cycle through already-added layouts,
-   see below for adding it the first time).
+   Çıktıyı `.sha256` dosyasının içeriğiyle karşılaştır.
+3. MSI'ı çalıştır. Windows Yönetici izni (UAC) isteyecektir — bu beklenen bir
+   durumdur. Bir klavye düzeni kurmak `HKEY_LOCAL_MACHINE` ve
+   `%ProgramFiles%` altına yazma gerektirir, ikisi de sistem geneli,
+   yönetici-yetkisi gerektiren konumlardır.
+4. Kurulumdan sonra Kitt'i Windows'un normal giriş ayarlarından ekle:
+   **Ayarlar → Saat ve Dil → Dil ve bölge → Klavye ekle**
+   (ya da zaten eklenmiş düzenler arasında geçiş yapmak için
+   **Windows tuşu + Boşluk** — ilk defa eklemek için aşağıya bak).
 
-No Python, .NET, or other runtime is required on the end-user machine —
-Kitt ships as a compiled native DLL.
+Son kullanıcı makinesinde Python, .NET ya da başka bir çalışma zamanına
+ihtiyaç yoktur — Kitt derlenmiş native bir DLL olarak dağıtılır.
 
-## Usage
+## Kullanım
 
-Once Kitt is added as an input method, switch to it the same way you switch
-between any other Windows keyboard layouts:
+Kitt bir giriş yöntemi olarak eklendikten sonra, diğer Windows klavye
+düzenleri arasında geçiş yaptığın gibi geçiş yaparsın:
 
-- **Win + Space** — cycle to the next enabled input layout.
-- Or click the language/layout indicator in the taskbar and pick **Kitt**.
+- **Win + Boşluk** — etkin giriş düzenleri arasında sırayla geçiş yapar.
+- Ya da görev çubuğundaki dil/düzen göstergesine tıklayıp **Kitt**'i seç.
 
-Typing works like a normal alphabetic layout:
+Yazarken normal bir alfabetik düzen gibi davranır:
 
-- `Shift + key` produces the uppercase Ukrainian letter.
-- `Caps Lock` affects letters as expected.
-- Familiar QWERTY punctuation is preserved wherever possible.
-- Ukrainian iotated vowels (`я`, `ю`, `є`, `ї`) are typed as `Y` followed by
-  the corresponding vowel key (`Y` alone types `й`), mirroring how they
-  actually sound in Ukrainian.
+- `Shift + tuş` büyük harf Ukraynaca karakteri üretir.
+- `Caps Lock` harfleri beklendiği gibi etkiler.
+- Tanıdık QWERTY noktalaması mümkün olduğunca korunur.
+- Ukraynaca iyotlu sesli harfler (`я`, `ю`, `є`, `ї`), `Y` tuşuna basıp
+  ardından ilgili sesli harfe basarak yazılır (`Y` tek başına `й` üretir) —
+  bu, Ukraynacada gerçekten nasıl telaffuz edildiklerini yansıtır.
 
-See [`docs/mapping.md`](docs/mapping.md) for the complete, generated
-key-by-key mapping reference.
+Tam, tuş tuş üretilen eşleme referansı için
+[`docs/mapping.md`](docs/mapping.md) dosyasına bakabilirsin.
 
-## Uninstallation
+## Kaldırma
 
-Uninstall Kitt the same way as any other Windows program:
-**Settings → Apps → Installed apps → Kitt → Uninstall**, or run the original
-MSI with `msiexec /x kitt-<version>-x64.msi` from an elevated shell.
-Uninstalling removes the installed DLL and Kitt's own registry entries only;
-it does not touch other keyboard layouts or settings.
+Kitt'i diğer Windows programları gibi kaldırabilirsin:
+**Ayarlar → Uygulamalar → Yüklü uygulamalar → Kitt → Kaldır**, ya da orijinal
+MSI'ı yükseltilmiş (elevated) bir kabuktan `msiexec /x kitt-<versiyon>-x64.msi`
+komutuyla çalıştır. Kaldırma işlemi yalnızca kurulan DLL'i ve Kitt'in kendi
+registry kayıtlarını siler; başka klavye düzenlerine ya da ayarlara
+dokunmaz.
 
-## Privacy
+## Gizlilik
 
-Kitt collects nothing. Specifically:
+Kitt hiçbir şey toplamaz. Somut olarak:
 
-- no user data is collected, stored, or transmitted;
-- no network connection is made, ever;
-- no telemetry, analytics, or crash reporting;
-- no account system;
-- Kitt cannot see or log what you type — it is a static native keyboard
-  layout, not an application sitting between you and the OS.
+- hiçbir kullanıcı verisi toplanmaz, saklanmaz ya da iletilmez;
+- hiçbir zaman ağ bağlantısı kurulmaz;
+- telemetri, analitik ya da çökme (crash) raporlama yoktur;
+- hesap sistemi yoktur;
+- Kitt ne yazdığını göremez ya da kaydedemez — o, seninle işletim sistemi
+  arasında duran bir uygulama değil, statik bir native klavye düzenidir.
 
-See `KITT_ARCHITECTURE.md` sections 16 ("Security Model") and 17
-("Privacy") for the full rationale.
+Tam gerekçe için `KITT_ARCHITECTURE.md` bölüm 16 ("Security Model") ve
+bölüm 17'ye ("Privacy") bakabilirsin.
 
-## Development
+## Geliştirme
 
-Kitt's mapping is defined once, in YAML, and everything else (native
-Windows tables, documentation, tests) is generated or validated from it.
-Start here:
+Kitt'in eşlemesi tek bir yerde, YAML olarak tanımlanır; geri kalan her şey
+(native Windows tabloları, dokümantasyon, testler) bundan üretilir ya da
+buna göre doğrulanır. Başlamak için:
 
-- [`installer/README.md`](installer/README.md) — building and inspecting
-  the WiX/MSI installer.
-- [`tools/`](tools/) — `build.ps1` (compile `kittua.dll`), `package.ps1`
-  (build the MSI), `clean.ps1` (remove build/dist output).
-- [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md) — full architecture,
-  build system, testing strategy, and versioning policy.
+- [`installer/README.md`](installer/README.md) — WiX/MSI kurulum paketini
+  derleme ve inceleme.
+- [`tools/`](tools/) — `build.ps1` (`kittua.dll`'i derler), `package.ps1`
+  (MSI'ı derler), `clean.ps1` (build/dist çıktısını temizler).
+- [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md) — tam mimari, build
+  sistemi, test stratejisi ve sürümleme politikası.
 
-Quick local build loop:
+Hızlı yerel geliştirme döngüsü:
 
 ```powershell
 pip install -e ".[dev]"

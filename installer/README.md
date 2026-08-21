@@ -1,32 +1,34 @@
-# Kitt installer (WiX)
+# Kitt kurulum paketi (WiX)
 
-This directory contains the WiX Toolset source for Kitt's Windows
-installer (MSI). See `KITT_ARCHITECTURE.md` section 10 ("Installer
-Architecture") and section 35 ("Microsoft/Windows Implementation
-Notes") for the design rationale.
+Bu klasör, Kitt'in Windows kurulum paketi (MSI) için WiX Toolset
+kaynağını içerir. Tasarım gerekçesi için `KITT_ARCHITECTURE.md`
+bölüm 10'a ("Installer Architecture") ve bölüm 35'e ("Microsoft/
+Windows Implementation Notes") bakabilirsin.
 
-## Files
+## Dosyalar
 
-- `wix/Package.wxs` — product identity (Name, Manufacturer, Version,
-  UpgradeCode), upgrade policy (`MajorUpgrade`), and the install
-  directory (`%ProgramFiles%\Kitt\`).
-- `wix/Components.wxs` — the installed payload: `kittua.dll` and the
-  Windows keyboard-layout registry registration under
-  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\`.
-- `wix/Localization.wxl` — minimal English strings for the installer UI.
+- `wix/Package.wxs` — ürün kimliği (Name, Manufacturer, Version,
+  UpgradeCode), yükseltme politikası (`MajorUpgrade`) ve kurulum
+  dizini (`%ProgramFiles%\Kitt\`).
+- `wix/Components.wxs` — kurulan içerik: `kittua.dll` ve
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\`
+  altındaki Windows klavye-düzeni registry kaydı.
+- `wix/Localization.wxl` — kurulum arayüzü için minimal İngilizce
+  metinler.
 
-## Building
+## Derleme
 
-The canonical way to build the MSI is `tools/package.ps1` from the
-repo root, which builds `kittua.dll` first and then invokes WiX with
-the correct `-D` defines:
+MSI'ı derlemenin kanonik yolu, repo kökünden `tools/package.ps1`
+çalıştırmaktır — önce `kittua.dll`'i derler, sonra doğru `-D`
+tanımlarıyla WiX'i çağırır:
 
 ```powershell
 ./tools/package.ps1
 ```
 
-To invoke WiX directly (e.g. for debugging a `.wxs` change), you need
-the DLL path and product version as preprocessor variables:
+WiX'i doğrudan çağırmak istersen (örn. bir `.wxs` değişikliğini
+hata ayıklamak için), DLL yolunu ve ürün sürümünü preprocessor
+değişkeni olarak vermen gerekir:
 
 ```powershell
 $env:Path += ";C:\Program Files\dotnet;$env:USERPROFILE\.dotnet\tools"
@@ -42,93 +44,97 @@ wix build `
 
 ### WiX Toolset v7 EULA
 
-WiX Toolset v7 requires accepting the Open Source Maintenance Fee
-(OSMF) EULA before any command (including `build`) will run. This is
-a one-time, per-user decision — not something automated silently by
-this repo's scripts. If `wix` fails with `WIX7015`, accept the EULA
-yourself first (see https://wixtoolset.org/osmf/ for what you are
-agreeing to):
+WiX Toolset v7, herhangi bir komutu (build dahil) çalıştırmadan önce
+Open Source Maintenance Fee (OSMF) lisans sözleşmesinin kabul
+edilmesini gerektirir. Bu, tek seferlik, kullanıcı bazlı bir karardır
+— bu repodaki script'ler tarafından sessizce otomatikleştirilmez.
+`wix` komutu `WIX7015` hatası verirse, sözleşmeyi önce kendin kabul
+et (neyi kabul ettiğini görmek için https://wixtoolset.org/osmf/
+adresine bakabilirsin):
 
 ```powershell
 wix eula accept wix7
 ```
 
-`tools/package.ps1` checks for this and prints the same instruction
-if the EULA has not been accepted yet, rather than accepting it on
-your behalf.
+`tools/package.ps1` bunu kontrol eder ve sözleşme henüz kabul
+edilmemişse, senin adına kabul etmek yerine aynı talimatı ekrana
+yazdırır.
 
-The `WixToolset.UI.wixext` extension (needed for the minimal install
-UI referenced from `Package.wxs`) is added automatically by
-`tools/package.ps1` if it is not already cached (`wix extension add
-WixToolset.UI.wixext`).
+`WixToolset.UI.wixext` eklentisi (`Package.wxs`'ten referans verilen
+minimal kurulum arayüzü için gerekli), henüz önbelleğe alınmamışsa
+`tools/package.ps1` tarafından otomatik olarak eklenir (`wix
+extension add WixToolset.UI.wixext`).
 
-## What this installer does
+## Bu kurulum paketi ne yapar
 
-1. Copies `kittua.dll` into `%ProgramFiles%\Kitt\`.
-2. Writes a keyboard-layout registration under
-   `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010422`
-   (`Layout File`, `Layout Text`, `Layout Id` values — see the
-   comments in `wix/Components.wxs` for the reasoning). The key name
-   was confirmed against this machine's real registry: Microsoft's
-   own in-box convention for a locale's non-default layout is
-   `000N<LANGID>` with N counting up (Ukrainian's default sits at
-   `00000422`, its "Enhanced" variant at `00020422`), so `00010422`
-   is both free and consistent with Microsoft's own numbering, not a
-   guessed vendor convention.
-3. Registers upgrade behavior (`MajorUpgrade`) so future 0.x.y
-   releases replace this installation instead of appearing as a
-   duplicate/unrelated layout.
+1. `kittua.dll`'i `%ProgramFiles%\Kitt\` altına kopyalar.
+2. `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010422`
+   altına bir klavye-düzeni kaydı yazar (`Layout File`, `Layout Text`,
+   `Layout Id` değerleri — gerekçe için `wix/Components.wxs`
+   içindeki yorumlara bakabilirsin). Bu key ismi, bu makinenin
+   gerçek registry'sine karşı doğrulandı: Microsoft'un kendi
+   in-box konvansiyonuna göre bir dilin varsayılan-olmayan düzeni
+   `000N<LANGID>` şeklinde numaralanır, N artan bir sayaçtır
+   (Ukraynaca'nın varsayılan düzeni `00000422`'de, "Enhanced"
+   varyantı `00020422`'de duruyor), yani `00010422` hem boşta hem de
+   Microsoft'un kendi numaralandırmasıyla tutarlı — tahmini bir
+   üçüncü-taraf konvansiyonu değil.
+3. Yükseltme davranışını (`MajorUpgrade`) kaydeder, böylece
+   gelecekteki 0.x.y sürümleri bu kurulumun yerine geçer, ayrı/
+   ilgisiz bir düzen olarak görünmez.
 
-It does **not** run any custom action, script, or background process.
-Everything above is implemented with native WiX/MSI primitives
-(`Component`, `File`, `RegistryValue`), per `KITT_ARCHITECTURE.md`
-section 16 ("use MSI/WiX primitives instead of hand-written
-destructive registry scripts when possible").
+Hiçbir custom action, script ya da arka plan süreci çalıştırmaz.
+Yukarıdakilerin tümü yalnızca native WiX/MSI ilkel öğeleriyle
+(`Component`, `File`, `RegistryValue`) uygulanmıştır,
+`KITT_ARCHITECTURE.md` bölüm 16'ya ("elle yazılmış yıkıcı registry
+script'leri yerine mümkün olduğunda MSI/WiX ilkel öğelerini kullan")
+uygun olarak.
 
-## Administrator privileges
+## Yönetici izinleri
 
-Installing (or uninstalling) this MSI writes to `HKEY_LOCAL_MACHINE`
-and to `%ProgramFiles%`, both of which require Administrator
-privileges. Windows will prompt for elevation (UAC) when you run the
-MSI, or you can run `msiexec /i ... ` from an elevated shell.
+Bu MSI'ı kurmak (ya da kaldırmak) `HKEY_LOCAL_MACHINE`'e ve
+`%ProgramFiles%`'a yazar, ikisi de Yönetici izni gerektirir. MSI'ı
+çalıştırdığında Windows yükseltme (UAC) isteyecektir, ya da
+yükseltilmiş bir kabuktan `msiexec /i ...` çalıştırabilirsin.
 
-**Building** the MSI (`tools/package.ps1` / `wix build`) does **not**
-require Administrator — it only compiles files on disk.
+MSI'ı **derlemek** (`tools/package.ps1` / `wix build`) Yönetici izni
+**gerektirmez** — yalnızca diskte dosya derler.
 
-## IMPORTANT — do not install on your development machine
+## ÖNEMLİ — geliştirme makinene kurma
 
-**Only install/test this MSI in a disposable test VM, never on your
-main development machine.** This matches `KITT_ARCHITECTURE.md`
-section 10's "Development installation" guidance: real keyboard-layout
-installation touches system-level, per-machine state
-(`HKEY_LOCAL_MACHINE`, the Windows input-layout system). Installing it
-on a machine you rely on for development risks leaving behind an
-incorrect/orphaned keyboard-layout registration that is awkward to
-clean up, or interfering with your own keyboard input while you're
-trying to work — this holds regardless of how confident the registry
-key naming is, simply because it has not yet been tested end-to-end
-as an actual installed+selectable Windows input layout.
+**Bu MSI'ı yalnızca atılabilir bir test VM'inde kur/dene, asla ana
+geliştirme makinende değil.** Bu, `KITT_ARCHITECTURE.md` bölüm
+10'daki "Development installation" tavsiyesiyle uyumludur: gerçek
+klavye-düzeni kurulumu sistem geneli, makine bazlı duruma dokunur
+(`HKEY_LOCAL_MACHINE`, Windows giriş-düzeni sistemi). Geliştirme
+için güvendiğin bir makineye kurmak, temizlenmesi zor
+yanlış/sahipsiz bir klavye-düzeni kaydı bırakma ya da çalışırken
+kendi klavye girişini bozma riski taşır — bu, registry key
+isimlendirmesine ne kadar güvendiğinden bağımsızdır, çünkü henüz
+gerçekten kurulmuş+seçilebilir bir Windows giriş düzeni olarak
+uçtan uca test edilmedi.
 
-Recommended flow:
+Önerilen akış:
 
-1. Build the MSI with `tools/package.ps1` on your dev machine (no
-   elevation required).
-2. Copy the resulting `dist/kitt-0.1.0-x64.msi` into a disposable
-   Windows VM (snapshot it first).
-3. Install it there (`msiexec /i kitt-0.1.0-x64.msi`, elevated), and
-   run through the manual checklist in `KITT_ARCHITECTURE.md` section
-   12.6 ("Installation Tests").
-4. Discard/roll back the VM snapshot when done, or verify
-   `msiexec /x kitt-0.1.0-x64.msi` cleanly uninstalls it.
+1. MSI'ı geliştirme makinende `tools/package.ps1` ile derle (yükseltme
+   gerektirmez).
+2. Üretilen `dist/kitt-0.1.0-x64.msi`'yi atılabilir bir Windows VM'ine
+   kopyala (önce anlık görüntü/snapshot al).
+3. Orada kur (`msiexec /i kitt-0.1.0-x64.msi`, yükseltilmiş olarak) ve
+   `KITT_ARCHITECTURE.md` bölüm 12.6'daki ("Installation Tests") elle
+   yapılan kontrol listesini uygula.
+4. İşin bitince VM anlık görüntüsünü sil/geri al, ya da
+   `msiexec /x kitt-0.1.0-x64.msi`'nin temiz şekilde kaldırdığını
+   doğrula.
 
-## Verifying checksums
+## Checksum doğrulama
 
-`tools/package.ps1` writes a `.sha256` file alongside the `.msi` in
-`dist/` (`KITT_ARCHITECTURE.md` section 11: "SHA-256 checksums are
-created"). Verify with:
+`tools/package.ps1`, `dist/` altında `.msi` dosyasının yanına bir
+`.sha256` dosyası yazar (`KITT_ARCHITECTURE.md` bölüm 11: "SHA-256
+checksum'ları oluşturulur"). Şununla doğrula:
 
 ```powershell
 Get-FileHash dist/kitt-0.1.0-x64.msi -Algorithm SHA256
 ```
 
-and compare against the contents of the matching `.sha256` file.
+ve çıktıyı ilgili `.sha256` dosyasının içeriğiyle karşılaştır.

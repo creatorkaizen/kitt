@@ -1,63 +1,65 @@
-# Changelog
+# Değişiklik Günlüğü
 
-All notable changes to this project are documented in this file.
+Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-(see `KITT_ARCHITECTURE.md` section 14 for Kitt's specific versioning policy).
+Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) esas
+alınarak hazırlanmıştır, bu proje [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+kullanır (Kitt'e özgü sürümleme politikası için `KITT_ARCHITECTURE.md`
+bölüm 14'e bakabilirsin).
 
-## [Unreleased]
+## [Yayınlanmamış]
 
-Work so far corresponds to milestones M0–M3 of
-`KITT_ARCHITECTURE.md` section 27 ("Suggested Milestones"). No
-tagged release has been published yet.
+Şu ana kadarki çalışma, `KITT_ARCHITECTURE.md` bölüm 27'deki
+("Suggested Milestones") M0–M3 kilometre taşlarına karşılık gelir.
+Henüz etiketlenmiş (tagged) bir sürüm yayınlanmadı.
 
-### Added
+### Eklenenler
 
-- **Layout (M0):** canonical Ukrainian mnemonic layout
-  (`layout/kitt.uk-UA.yaml`), mapped to Turkish Q physical keyboard
-  positions, with a dead key on `Y` for the iotated vowels
-  (я/ю/є/ї).
-- **Generator (M0):** `kittgen` Python package (parser, validation,
-  Unicode checks, Windows table generation, Markdown docs generation,
-  CLI) with `python -m kittgen validate` and
-  `python -m kittgen generate` commands. All 66 required Ukrainian
-  letters confirmed reachable.
-- **Native layer (M1):** `kittgen` generates a Windows `KBDTABLES` C
-  source file (`src/windows/kitt_tables.c`) from the YAML layout,
-  including `VK_TO_WCHARS2`, dead-key/`DEADTRANS`, the scan-code
-  table, and the `KbdLayerDescriptor` export, following the WDK
-  keyboard-layout DLL contract. Turkish-Q-specific `VK_OEM_*`
-  assignments and scan codes were verified against the real
-  Windows-shipped Turkish Q driver (`KBDTUQ.DLL`).
-- **Native build (M2):** CMake build system (`CMakeLists.txt`,
-  `src/windows/CMakeLists.txt`, `kitt.def`, `resources.rc`) producing
-  `kittua.dll`, plus `tools/build.ps1` as the canonical local build
-  entrypoint (regenerates native source from YAML, then configures
-  and builds via CMake/MSVC) and `tools/clean.ps1`.
-- **Installer (M3):** WiX Toolset source
+- **Klavye düzeni (M0):** Türkçe Q fiziksel klavye pozisyonlarına
+  eşlenen, iyotlu sesli harfler (я/ю/є/ї) için `Y` tuşunda ölü tuş
+  (dead key) kullanan kanonik Ukraynaca mnemonik düzen
+  (`layout/kitt.uk-UA.yaml`).
+- **Üretici (M0):** `kittgen` Python paketi (parser, doğrulama,
+  Unicode kontrolleri, Windows tablo üretimi, Markdown döküman
+  üretimi, CLI) — `python -m kittgen validate` ve
+  `python -m kittgen generate` komutlarıyla. 66 gerekli Ukraynaca
+  harfin tamamının erişilebilir olduğu doğrulandı.
+- **Native katman (M1):** `kittgen`, YAML klavye düzeninden bir
+  Windows `KBDTABLES` C kaynak dosyası üretir
+  (`src/windows/kitt_tables.c`) — `VK_TO_WCHARS2`, ölü tuş/`DEADTRANS`,
+  scan-code tablosu ve `KbdLayerDescriptor` export'u dahil, WDK
+  klavye-düzeni DLL sözleşmesine uygun şekilde. Türkçe Q'ya özgü
+  `VK_OEM_*` atamaları ve scan code'lar, gerçek Windows'un kendi
+  Türkçe Q sürücüsüne (`KBDTUQ.DLL`) karşı doğrulandı.
+- **Native derleme (M2):** `kittua.dll`'i üreten CMake build sistemi
+  (`CMakeLists.txt`, `src/windows/CMakeLists.txt`, `kitt.def`,
+  `resources.rc`), ayrıca kanonik yerel derleme giriş noktası olan
+  `tools/build.ps1` (YAML'dan native kaynağı yeniden üretir, sonra
+  CMake/MSVC ile derler) ve `tools/clean.ps1`.
+- **Kurulum paketi (M3):** WiX Toolset kaynağı
   (`installer/wix/Package.wxs`, `Components.wxs`, `Localization.wxl`)
-  and `tools/package.ps1`, producing
-  `dist/kitt-<version>-x64.msi` with a SHA-256 checksum file. Installs
-  `kittua.dll` and registers the layout under
+  ve `tools/package.ps1`, SHA-256 checksum dosyasıyla birlikte
+  `dist/kitt-<versiyon>-x64.msi` üretir. `kittua.dll`'i kurar ve
+  klavye düzenini
   `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010422`
-  using native WiX/MSI primitives only (no custom actions).
-- **Tests:** pytest suite covering unit, layout/contract, and
-  snapshot tests (246 tests as of this writing), including full
-  Ukrainian alphabet reachability and deterministic-generation
-  coverage.
+  altına, yalnızca native WiX/MSI ilkel öğeleri (custom action
+  kullanmadan) ile kaydeder.
+- **Testler:** birim, klavye düzeni/sözleşme ve snapshot testlerini
+  kapsayan pytest test paketi (bu yazı itibarıyla 246 test) — tam
+  Ukraynaca alfabe erişilebilirliği ve deterministik üretim
+  kapsamı dahil.
 - **CI/CD:** GitHub Actions `ci.yml` (lint-and-test,
-  build-windows-x64, package-windows-x64, matching
-  `KITT_ARCHITECTURE.md` section 13) and `release.yml`
-  (tag-triggered `v*` build, package, and GitHub Release publication
-  with version-consistency check against `layout.version`, per
-  section 14).
-- **Docs:** user-facing `README.md`; generated mapping reference
-  (`docs/mapping.md`).
+  build-windows-x64, package-windows-x64 — `KITT_ARCHITECTURE.md`
+  bölüm 13'e uygun) ve `release.yml` (`v*` etiketiyle tetiklenen
+  build, paketleme ve GitHub Release yayınlama; `layout.version` ile
+  sürüm tutarlılığı kontrolü dahil, bölüm 14'e uygun).
+- **Dokümantasyon:** kullanıcıya dönük `README.md`; üretilen eşleme
+  referansı (`docs/mapping.md`).
 
-### Fixed
+### Düzeltilenler
 
-- CMake install rules were missing `ARCHIVE DESTINATION`, silently
-  dropping `kittua.lib` from an installed/packaged tree; and
-  `kitt.def` was referenced in two independent places that could
-  have silently diverged. Both corrected during M2 review.
+- CMake kurulum kuralları `ARCHIVE DESTINATION` içermiyordu, bu da
+  `kittua.lib`'in kurulan/paketlenen ağaçtan sessizce düşmesine yol
+  açıyordu; ayrıca `kitt.def` iki bağımsız yerde referans alınıyordu,
+  bu da sessizce birbirinden ayrışabilirdi. Her ikisi de M2
+  incelemesi sırasında düzeltildi.
