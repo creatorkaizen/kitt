@@ -1,0 +1,187 @@
+name: CI
+
+# Runs on every push and pull request. Mirrors KITT_ARCHITECTURE.md
+# section 13 ("CI Pipeline"): lint-and-test -> build-windows-x64 ->
+# package-windows-x64. release.yml (tag-triggered) covers the actual
+# GitHub Release publication described under "Release trigger".
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  # Lets a maintainer re-run the full pipeline by hand from the
+  # Actions tab without needing a new commit.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------
+  # lint-and-test (KITT_ARCHITECTURE.md section 13)
+  #   setup Python -> install generator deps -> validate layout
+  #   -> run pytest -> verify deterministic generation
+  # ---------------------------------------------------------------------
+  lint-and-test:
+    name: lint-and-test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install kittgen (editable, with dev extras)
+        run: pip install -e ".[dev]"
+
+      - name: Validate layout/kitt.uk-UA.yaml
+        run: python -m kittgen validate layout/kitt.uk-UA.yaml
+
+      - name: Run pytest
+        run: pytest tests/ -v
+
+      # KITT_ARCHITECTURE.md section 11 "Deterministic generation":
+      # regenerate src/windows/kitt_tables.c and docs/mapping.md from
+      # the YAML source of truth and fail if that differs from what is
+      # committed. This is what catches "edited the YAML, forgot to
+      # regenerate the derived files" before it reaches native build.
+      - name: Regenerate native source + docs
+        run: python -m kittgen generate
+
+      - name: Verify generated files match committed files
+        run: git diff --exit-code -- src/windows/kitt_tables.c docs/mapping.md
+
+  # ---------------------------------------------------------------------
+  # build-windows-x64 (KITT_ARCHITECTURE.md section 13)
+  #   setup MSVC/Windows SDK/WDK -> generate source -> build Release DLL
+  #   -> upload artifact
+  #
+  # windows-latest already ships MSVC Build Tools + Windows SDK + CMake,
+  # so no extra toolchain setup action is needed. tools/build.ps1 picks
+  # its own CMake generator by probing installed VS/Build Tools
+  # versions (2019 or 2022) rather than hardcoding one, so it works
+  # unmodified on the VS 2022 toolchain that windows-latest provides.
+  # ---------------------------------------------------------------------
+  build-windows-x64:
+    name: build-windows-x64
+    runs-on: windows-latest
+    needs: lint-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install kittgen (editable, with dev extras)
+        run: pip install -e ".[dev]"
+
+      - name: Build kittua.dll (tools/build.ps1)
+        run: ./tools/build.ps1 -Configuration Release
+        shell: pwsh
+
+      - name: Verify kittua.dll was produced
+        shell: pwsh
+        run: |
+          $dll = "build/windows/src/windows/Release/kittua.dll"
+          if (-not (Test-Path $dll)) {
+            throw "Expected $dll to exist after tools/build.ps1"
+          }
+          Write-Host "Found $dll ($((Get-Item $dll).Length) bytes)"
+
+      - name: Upload kittua.dll artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kittua-dll-x64
+          path: build/windows/src/windows/Release/kittua.dll
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # package-windows-x64 (KITT_ARCHITECTURE.md section 13)
+  #   download DLL artifact -> build WiX package -> calculate SHA-256
+  #   -> upload installer artifact
+  #
+  # tools/package.ps1 calls tools/build.ps1 itself, so this job rebuilds
+  # kittua.dll rather than reusing the build-windows-x64 artifact; that
+  # keeps package.ps1 the single source of truth for "how to produce the
+  # MSI" instead of the workflow re-implementing its steps. The
+  # dependency on build-windows-x64 is kept anyway so packaging never
+  # runs (and never burns CI minutes) after a native build has already
+  # failed.
+  # ---------------------------------------------------------------------
+  package-windows-x64:
+    name: package-windows-x64
+    runs-on: windows-latest
+    needs: build-windows-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install kittgen (editable, with dev extras)
+        run: pip install -e ".[dev]"
+
+      - name: Install WiX CLI
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 7.0.0
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Accept WiX Toolset v7 EULA
+        shell: pwsh
+        run: |
+          # WiX Toolset v7 refuses to run any real command (WIX7015)
+          # until its Open Source Maintenance Fee EULA is accepted:
+          # https://wixtoolset.org/osmf/
+          #
+          # tools/package.ps1 deliberately does NOT auto-accept this on
+          # a developer's machine (see installer/README.md) because
+          # agreeing to that EULA is meant to be a conscious, one-time
+          # human decision on a workstation someone owns and reuses.
+          #
+          # A CI runner is a different situation: it is an ephemeral,
+          # disposable, non-interactive environment created fresh for
+          # this job and destroyed right after. There is no human
+          # present to prompt, and the choice to build/distribute Kitt
+          # under WiX (and therefore to accept its EULA as part of that
+          # build) was already made by the maintainer when this
+          # workflow was committed to the repository. Auto-accepting
+          # here is CI automation of a decision the project already
+          # made, not silent/hidden consent on someone's behalf.
+          wix eula accept wix7
+
+      - name: Package MSI (tools/package.ps1)
+        shell: pwsh
+        run: ./tools/package.ps1 -Configuration Release
+
+      - name: Verify MSI + checksum were produced
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path dist -Filter "*.msi" -ErrorAction SilentlyContinue
+          if (-not $msi) { throw "No .msi found in dist/" }
+          $sha = Get-ChildItem -Path dist -Filter "*.msi.sha256" -ErrorAction SilentlyContinue
+          if (-not $sha) { throw "No .msi.sha256 found in dist/" }
+          Write-Host "MSI: $($msi.FullName) ($($msi.Length) bytes)"
+          Write-Host "Checksum: $($sha.FullName)"
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kitt-installer-x64
+          path: |
+            dist/*.msi
+            dist/*.sha256
+          if-no-files-found: error

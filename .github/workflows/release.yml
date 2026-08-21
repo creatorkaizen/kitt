@@ -1,0 +1,114 @@
+name: Release
+
+# KITT_ARCHITECTURE.md section 13 "Release trigger": only a `v*` tag
+# push becomes an official downloadable release. Ordinary branch
+# pushes/PRs are covered by ci.yml instead. section 14 "Versioning"
+# additionally requires the tag to match layout.version.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # required to create the GitHub Release
+
+jobs:
+  release:
+    name: build, package, and publish release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install kittgen (editable, with dev extras)
+        run: pip install -e ".[dev]"
+
+      - name: Validate layout/kitt.uk-UA.yaml
+        run: python -m kittgen validate layout/kitt.uk-UA.yaml
+
+      - name: Run pytest
+        run: pytest tests/ -v
+
+      - name: Regenerate native source + docs
+        run: python -m kittgen generate
+
+      - name: Verify generated files match committed files
+        run: git diff --exit-code -- src/windows/kitt_tables.c docs/mapping.md
+
+      # KITT_ARCHITECTURE.md section 14 "Versioning": catch a tag that
+      # was pushed without bumping layout.version (or vice versa)
+      # before it ships as an official release under the wrong name.
+      - name: Verify tag matches layout.version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if (-not $tag.StartsWith("v")) {
+            throw "Expected a tag starting with 'v', got '$tag'"
+          }
+          $tagVersion = $tag.Substring(1)
+
+          $yamlVersionLine = Select-String -Path "layout/kitt.uk-UA.yaml" -Pattern "^\s*version:\s*(\S+)\s*$" |
+            Select-Object -First 1
+          if (-not $yamlVersionLine) {
+            throw "Could not find 'version:' under layout: in layout/kitt.uk-UA.yaml"
+          }
+          $layoutVersion = $yamlVersionLine.Matches[0].Groups[1].Value
+
+          Write-Host "Tag version:    $tagVersion"
+          Write-Host "layout.version: $layoutVersion"
+
+          if ($tagVersion -ne $layoutVersion) {
+            throw "Tag 'v$tagVersion' does not match layout.version '$layoutVersion' in layout/kitt.uk-UA.yaml. Update layout.version (and installer/wix/Package.wxs / tools/package.ps1's `$ProductVersion, which must already be kept in sync per their own comments) before tagging a release."
+          }
+
+      - name: Build kittua.dll (tools/build.ps1)
+        run: ./tools/build.ps1 -Configuration Release
+        shell: pwsh
+
+      - name: Install WiX CLI
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 7.0.0
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Accept WiX Toolset v7 EULA
+        shell: pwsh
+        run: |
+          # See ci.yml's "Accept WiX Toolset v7 EULA" step for the full
+          # rationale: this is CI automating a decision already made by
+          # the maintainer when this workflow was committed, on an
+          # ephemeral non-interactive runner with no human to prompt.
+          # https://wixtoolset.org/osmf/
+          wix eula accept wix7
+
+      - name: Package MSI (tools/package.ps1)
+        run: ./tools/package.ps1 -Configuration Release -SkipBuild
+        shell: pwsh
+
+      - name: Verify MSI + checksum were produced
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path dist -Filter "*.msi" -ErrorAction SilentlyContinue
+          if (-not $msi) { throw "No .msi found in dist/" }
+          $sha = Get-ChildItem -Path dist -Filter "*.msi.sha256" -ErrorAction SilentlyContinue
+          if (-not $sha) { throw "No .msi.sha256 found in dist/" }
+          Write-Host "MSI: $($msi.FullName) ($($msi.Length) bytes)"
+          Write-Host "Checksum: $($sha.FullName)"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # github.ref_name is the pushed tag (e.g. "v0.1.0"); already
+          # validated above against layout.version.
+          name: Kitt ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/*.msi
+            dist/*.sha256
