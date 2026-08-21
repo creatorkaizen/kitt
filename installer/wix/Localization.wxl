@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kitt — minimal English localization for the WiX installer UI
+  (referenced in KITT_ARCHITECTURE.md's installer/wix/ file listing,
+  section 10). Kept intentionally small: just the strings the
+  WixUI_Minimal dialog set actually needs.
+-->
+<WixLocalization Culture="en-us" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ProductName" Value="Kitt" />
+  <String Id="ProductDescription" Value="Ukrainian mnemonic keyboard layout for Windows" />
+  <String Id="Manufacturer" Value="Kitt Project" />
+</WixLocalization>

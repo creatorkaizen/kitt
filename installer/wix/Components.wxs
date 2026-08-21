@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kitt — installed payload: the layout DLL plus its Windows
+  keyboard-layout registry registration (KITT_ARCHITECTURE.md
+  section 10 "Installer Architecture" and section 35 "Microsoft/
+  Windows Implementation Notes").
+
+  Everything here uses native WiX/MSI primitives only (Component,
+  File, RegistryValue) per section 16 "use MSI/WiX primitives instead
+  of hand-written destructive registry scripts when possible" — there
+  is no custom action / scripting in this installer.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <ComponentGroup Id="KittComponents" Directory="INSTALLFOLDER">
+
+      <!--
+        kittua.dll itself. $(var.KittuaDllPath) is a WiX preprocessor
+        variable (a -D define passed on the `wix build` command line
+        by tools/package.ps1) pointing at the Release build produced
+        by tools/build.ps1, e.g.
+          build\windows\src\windows\Release\kittua.dll
+        No absolute/hardcoded path is baked into this source file, so
+        the same .wxs works regardless of where the repo/build
+        directory happens to live on a given machine.
+      -->
+      <Component Id="KittuaDll" Guid="7E2A8B6E-6C0F-4C7E-9C0D-1C0B7F8E9A11">
+        <File Id="KittuaDllFile"
+              Source="$(var.KittuaDllPath)"
+              Name="kittua.dll"
+              KeyPath="yes" />
+      </Component>
+
+      <!--
+        ==========================================================
+        Windows keyboard-layout registration.
+
+        KITT_ARCHITECTURE.md section 35 states Windows maintains
+        keyboard-layout registration under:
+
+          HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\<8-hex-digit layout ID>
+
+        The registry key documented for real Microsoft-shipped
+        layouts under that path is named after an 8-hex-digit
+        "KLID" (KeyBoard Layout ID) of the form HHHHLLLL, where the
+        low 4 hex digits (LLLL) are normally the input locale's
+        LANGID (uk-UA = 0x0422) and the high 4 hex digits (HHHH)
+        distinguish a non-default layout for that same locale from
+        Microsoft's default one. Third-party/community layouts that
+        are not registered with Microsoft do not have an
+        authoritative HHHH value assigned to them by any spec that
+        ships in-box; different community layouts and tutorials use
+        different conventions here (some reuse the locale ID twice,
+        some pick a high part out of an "unused"/vendor range).
+
+        CONFIRMED against this machine's real registry (not a guess):
+        every Microsoft-shipped *default* layout for a locale is keyed
+        as 8 hex digits 0000LLLL (LLLL = LANGID), e.g. Ukrainian's
+        default layout (KBDUR.DLL) sits at 00000422. When a locale
+        has more than one shipped layout, Microsoft's own convention
+        for the extra ones is 000NLLLL with N counting up from 1 —
+        confirmed here too: Ukrainian (Enhanced) (KBDUR1.DLL) is
+        registered at 00020422 with "Layout Id" = 00a8, i.e. N=2 (N=1
+        is unused on this machine). So 00010422 (N=1) is both free on
+        a real Windows install and consistent with Microsoft's own
+        in-box numbering scheme, not an ad hoc "vendor range" guess —
+        this is a stronger source than any third-party
+        tutorial/convention.
+        ==========================================================
+      -->
+      <Component Id="KittRegistryLayout"
+                 Guid="4B6C9E2D-3A1F-4E5C-8B7A-2D9F6C1E4A33"
+                 Directory="INSTALLFOLDER">
+
+        <!--
+          KeyPath: this RegistryValue is the KeyPath for the
+          component, so WiX/MSI tracks this key as "what proves the
+          component is installed" and will clean up the entire
+          registry key tree it wrote (via the child RegistryValue
+          elements below, which share this component) automatically
+          on uninstall/upgrade — no separate uninstall logic needed,
+          and no keys outside this key are ever touched, satisfying
+          section 10's "never delete registry keys not created by
+          Kitt".
+        -->
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00010422">
+
+          <!-- Name of the layout DLL Windows should load for this entry. -->
+          <RegistryValue Type="string" Name="Layout File" Value="kittua.dll" KeyPath="yes" />
+
+          <!-- Human-readable name shown in Windows language/input-switcher UI. -->
+          <RegistryValue Type="string" Name="Layout Text" Value="Kitt" />
+
+          <!--
+            Layout Id: a 4-hex-digit ID Windows uses internally
+            (distinct from the registry key name above) to
+            distinguish this layout in some APIs/UI. Confirmed
+            against this machine's registry: Microsoft's own
+            secondary layouts populate this from their own
+            (Microsoft-internal) ID space — e.g. Ukrainian (Enhanced)
+            uses 00a8. Every 4-hex-digit value actually observed
+            in-box on this machine falls at or below 00cd, so 00e1
+            (chosen here) sits safely outside every value Microsoft
+            itself currently assigns, minimizing collision risk for
+            an unofficial community layout without needing a formally
+            reserved "vendor range" (no such range is documented
+            in-box).
+          -->
+          <RegistryValue Type="string" Name="Layout Id" Value="00e1" />
+
+        </RegistryKey>
+
+      </Component>
+
+    </ComponentGroup>
+
+    <!--
+      Note on Windows picking up the new layout (not a custom action —
+      informational only, per section 16 "use MSI/WiX primitives
+      instead of hand-written ... scripts when possible"):
+
+      Some references indicate that after writing new entries under
+      ...\Control\Keyboard Layouts, either a sign-out/sign-in, a
+      reboot, or a broadcast of WM_INPUTLANGCHANGEREQUEST /
+      WM_SETTINGCHANGE-style notification (sometimes described
+      informally as an "UpdateKeyboardLayout" style refresh) may be
+      needed before Kitt shows up as selectable without restarting
+      apps/session. This installer intentionally does NOT implement
+      that as a custom action. If verification shows real users need
+      it, prefer documenting "sign out and back in after install" in
+      installer/README.md over adding installer scripting, consistent
+      with KITT_ARCHITECTURE.md section 10's "if a reboot/sign-out is
+      needed for a particular change, communicate it explicitly."
+    -->
+  </Fragment>
+</Wix>

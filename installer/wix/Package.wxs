@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kitt — MSI package definition (KITT_ARCHITECTURE.md section 10,
+  "Installer Architecture", and section 4, product overview).
+
+  Built with WiX Toolset v5/v7 schema (http://wixtoolset.org/schemas/v4/wxs).
+  Architecture doc recommends WiX 5; WiX 7 uses the same .wxs XML format
+  and is what is actually installed in this environment.
+
+  This file defines the product identity (Name/Manufacturer/Version/
+  UpgradeCode), the upgrade policy, and the installation directory.
+  The actual payload (files + registry) lives in Components.wxs.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <!--
+    Package/ProductCode: WiX v4+ auto-generates a new ProductCode per
+    build unless one is pinned, which is the normal/recommended mode
+    when MajorUpgrade is used to manage upgrades via UpgradeCode
+    instead. Do not pin ProductCode here; UpgradeCode is the stable
+    identity that matters for upgrade behavior (see below).
+  -->
+  <Package Name="Kitt"
+           Manufacturer="Kitt Project"
+           Version="0.1.0"
+           UpgradeCode="936B2705-65D6-41C0-B4B3-5AFA3FDEB742"
+           Language="1033"
+           Codepage="UTF-8"
+           Scope="perMachine"
+           InstallerVersion="500">
+    <!--
+      UpgradeCode above:
+      DO NOT CHANGE - upgrade identity.
+
+      This GUID is Kitt's permanent product family identity. WiX/MSI
+      uses UpgradeCode (not ProductCode, which is allowed to change
+      every build) to recognize "this MSI is a newer/older build of
+      the same product" during install. KITT_ARCHITECTURE.md section
+      10 "Upgrade policy" requires that patch/minor releases upgrade
+      Kitt in place rather than appear as a random duplicate layout
+      entry, which depends entirely on this value never changing
+      across releases. Regenerating this GUID would break upgrade/
+      uninstall for everyone who installed a prior version.
+    -->
+
+    <SummaryInformation Keywords="Installer" Description="Kitt Ukrainian mnemonic keyboard layout installer" />
+
+    <!--
+      MajorUpgrade: implements KITT_ARCHITECTURE.md section 10 upgrade
+      rules using WiX/MSI built-in primitives (no custom actions):
+        - a newer MSI automatically uninstalls the previously
+          installed version and installs itself ("patch/minor
+          releases should upgrade Kitt rather than appear as random
+          duplicate layouts");
+        - installing an older MSI over a newer one is blocked
+          (downgrade prevention), matching normal Windows installer
+          expectations.
+    -->
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of Kitt is already installed. Setup will now exit."
+      Schedule="afterInstallInitialize" />
+
+    <!-- MSI media: everything embedded in a single cab inside the .msi. -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Installation directory tree: %ProgramFiles%\Kitt\ -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Kitt" />
+    </StandardDirectory>
+
+    <!-- Payload defined in Components.wxs, pulled in as a single Feature. -->
+    <Feature Id="MainFeature" Title="Kitt Keyboard Layout" Level="1">
+      <ComponentGroupRef Id="KittComponents" />
+    </Feature>
+
+    <!-- UI: minimal, non-interactive-friendly install (no custom dialogs). -->
+    <ui:WixUI xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" Id="WixUI_Minimal" />
+
+  </Package>
+</Wix>
