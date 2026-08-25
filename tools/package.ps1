@@ -114,26 +114,37 @@ if (-not (Test-Path $eulaMarker)) {
 }
 
 Write-Step "Ensuring WixToolset.UI.wixext extension is available"
-# PowerShell 7's `2>&1` merges native-command stderr into the output as
-# ErrorRecord objects, which can render as an empty/unhelpful string
-# when interpolated directly into an error message (confirmed by a CI
-# run whose "wix extension list failed:" message had nothing after
-# the colon). Force-stringify each output line instead so a real
-# failure here is actually readable, and separate stdout capture from
-# exit-code checking so $LASTEXITCODE isn't clobbered by other
-# commands in between.
-$extListLines = & $wix extension list 2>&1 | ForEach-Object { $_.ToString() }
-$extListExitCode = $LASTEXITCODE
-$extListText = $extListLines -join "`n"
+# `2>&1` on a native command in PowerShell 7 merges stderr in as
+# ErrorRecord objects, which have repeatedly rendered as empty/
+# unhelpful text when interpolated into an error message here (two
+# separate CI failures showed "wix extension list failed:" with
+# nothing useful after it, even after forcing .ToString() on each
+# line). Redirecting to real temp files instead sidesteps object
+# stream semantics entirely and captures whatever wix.exe actually
+# printed, byte for byte.
+$extListOutFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-list-out.txt"
+$extListErrFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-list-err.txt"
+$extListProc = Start-Process -FilePath $wix -ArgumentList "extension", "list" `
+    -NoNewWindow -Wait -PassThru `
+    -RedirectStandardOutput $extListOutFile -RedirectStandardError $extListErrFile
+$extListExitCode = $extListProc.ExitCode
+$extListText = (Get-Content $extListOutFile -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content $extListErrFile -Raw -ErrorAction SilentlyContinue)
+Remove-Item $extListOutFile, $extListErrFile -ErrorAction SilentlyContinue
 if ($extListExitCode -ne 0) {
     throw "wix extension list failed (exit $extListExitCode):`n$extListText"
 }
 if ($extListText -notmatch "WixToolset\.UI\.wixext") {
     Write-Host "Adding WixToolset.UI.wixext (required by Package.wxs WixUI reference)..."
-    $addOutput = & $wix extension add WixToolset.UI.wixext 2>&1 | ForEach-Object { $_.ToString() }
-    $addExitCode = $LASTEXITCODE
+    $addOutFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-add-out.txt"
+    $addErrFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-add-err.txt"
+    $addProc = Start-Process -FilePath $wix -ArgumentList "extension", "add", "WixToolset.UI.wixext" `
+        -NoNewWindow -Wait -PassThru `
+        -RedirectStandardOutput $addOutFile -RedirectStandardError $addErrFile
+    $addExitCode = $addProc.ExitCode
+    $addText = (Get-Content $addOutFile -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content $addErrFile -Raw -ErrorAction SilentlyContinue)
+    Remove-Item $addOutFile, $addErrFile -ErrorAction SilentlyContinue
     if ($addExitCode -ne 0) {
-        throw "wix extension add WixToolset.UI.wixext failed (exit $addExitCode):`n$($addOutput -join "`n")"
+        throw "wix extension add WixToolset.UI.wixext failed (exit $addExitCode):`n$addText"
     }
 }
 else {
