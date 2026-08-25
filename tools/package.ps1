@@ -114,15 +114,26 @@ if (-not (Test-Path $eulaMarker)) {
 }
 
 Write-Step "Ensuring WixToolset.UI.wixext extension is available"
-$extList = & $wix extension list 2>&1
-if ($LASTEXITCODE -ne 0) {
-    throw "wix extension list failed:`n$extList"
+# PowerShell 7's `2>&1` merges native-command stderr into the output as
+# ErrorRecord objects, which can render as an empty/unhelpful string
+# when interpolated directly into an error message (confirmed by a CI
+# run whose "wix extension list failed:" message had nothing after
+# the colon). Force-stringify each output line instead so a real
+# failure here is actually readable, and separate stdout capture from
+# exit-code checking so $LASTEXITCODE isn't clobbered by other
+# commands in between.
+$extListLines = & $wix extension list 2>&1 | ForEach-Object { $_.ToString() }
+$extListExitCode = $LASTEXITCODE
+$extListText = $extListLines -join "`n"
+if ($extListExitCode -ne 0) {
+    throw "wix extension list failed (exit $extListExitCode):`n$extListText"
 }
-if ($extList -notmatch "WixToolset\.UI\.wixext") {
+if ($extListText -notmatch "WixToolset\.UI\.wixext") {
     Write-Host "Adding WixToolset.UI.wixext (required by Package.wxs WixUI reference)..."
-    & $wix extension add WixToolset.UI.wixext
-    if ($LASTEXITCODE -ne 0) {
-        throw "wix extension add WixToolset.UI.wixext failed with exit code $LASTEXITCODE"
+    $addOutput = & $wix extension add WixToolset.UI.wixext 2>&1 | ForEach-Object { $_.ToString() }
+    $addExitCode = $LASTEXITCODE
+    if ($addExitCode -ne 0) {
+        throw "wix extension add WixToolset.UI.wixext failed (exit $addExitCode):`n$($addOutput -join "`n")"
     }
 }
 else {
