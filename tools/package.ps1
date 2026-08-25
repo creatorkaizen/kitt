@@ -113,44 +113,18 @@ if (-not (Test-Path $eulaMarker)) {
     throw "WiX EULA not yet accepted (expected marker at $eulaMarker)."
 }
 
-Write-Step "Ensuring WixToolset.UI.wixext extension is available"
-# `2>&1` on a native command in PowerShell 7 merges stderr in as
-# ErrorRecord objects, which have repeatedly rendered as empty/
-# unhelpful text when interpolated into an error message here (two
-# separate CI failures showed "wix extension list failed:" with
-# nothing useful after it, even after forcing .ToString() on each
-# line). Redirecting to real temp files instead sidesteps object
-# stream semantics entirely and captures whatever wix.exe actually
-# printed, byte for byte.
-$extListOutFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-list-out.txt"
-$extListErrFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-list-err.txt"
-$extListProc = Start-Process -FilePath $wix -ArgumentList "extension", "list" `
-    -NoNewWindow -Wait -PassThru `
-    -RedirectStandardOutput $extListOutFile -RedirectStandardError $extListErrFile
-$extListExitCode = $extListProc.ExitCode
-$extListText = (Get-Content $extListOutFile -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content $extListErrFile -Raw -ErrorAction SilentlyContinue)
-Remove-Item $extListOutFile, $extListErrFile -ErrorAction SilentlyContinue
-if ($extListExitCode -ne 0) {
-    throw "wix extension list failed (exit $extListExitCode):`n$extListText"
-}
-if ($extListText -notmatch "WixToolset\.UI\.wixext") {
-    Write-Host "Adding WixToolset.UI.wixext (required by Package.wxs WixUI reference)..."
-    $addOutFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-add-out.txt"
-    $addErrFile = Join-Path ([System.IO.Path]::GetTempPath()) "kitt-wix-extension-add-err.txt"
-    $addProc = Start-Process -FilePath $wix -ArgumentList "extension", "add", "WixToolset.UI.wixext" `
-        -NoNewWindow -Wait -PassThru `
-        -RedirectStandardOutput $addOutFile -RedirectStandardError $addErrFile
-    $addExitCode = $addProc.ExitCode
-    $addText = (Get-Content $addOutFile -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content $addErrFile -Raw -ErrorAction SilentlyContinue)
-    Remove-Item $addOutFile, $addErrFile -ErrorAction SilentlyContinue
-    if ($addExitCode -ne 0) {
-        throw "wix extension add WixToolset.UI.wixext failed (exit $addExitCode):`n$addText"
-    }
-}
-else {
-    Write-Host "WixToolset.UI.wixext already present."
-}
-
+# No separate "wix extension list/add" pre-check here: `wix build`'s
+# own `-ext WixToolset.UI.wixext` flag already resolves/downloads the
+# extension itself if it is not already cached, and a standalone
+# `wix extension list` pre-check turned out to be a dead end on CI --
+# it exited with code 2 and produced literally zero output on
+# stdout/stderr across three different capture methods (a plain
+# `2>&1`, that same output forced through .ToString(), and finally
+# Start-Process with -RedirectStandardOutput/-RedirectStandardError to
+# real files), so nothing about *why* it failed could ever be
+# recovered here. Letting `wix build` handle its own extension
+# resolution removes the broken pre-check instead of trying to fix
+# something that gives no diagnostic signal to fix from.
 New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
 
 $msiName = "kitt-$ProductVersion-x64.msi"
