@@ -113,18 +113,23 @@ if (-not (Test-Path $eulaMarker)) {
     throw "WiX EULA not yet accepted (expected marker at $eulaMarker)."
 }
 
-# No separate "wix extension list/add" pre-check here: `wix build`'s
-# own `-ext WixToolset.UI.wixext` flag already resolves/downloads the
-# extension itself if it is not already cached, and a standalone
-# `wix extension list` pre-check turned out to be a dead end on CI --
-# it exited with code 2 and produced literally zero output on
-# stdout/stderr across three different capture methods (a plain
-# `2>&1`, that same output forced through .ToString(), and finally
-# Start-Process with -RedirectStandardOutput/-RedirectStandardError to
-# real files), so nothing about *why* it failed could ever be
-# recovered here. Letting `wix build` handle its own extension
-# resolution removes the broken pre-check instead of trying to fix
-# something that gives no diagnostic signal to fix from.
+Write-Step "Ensuring WixToolset.UI.wixext extension is installed"
+# `wix build`'s own `-ext WixToolset.UI.wixext` flag does NOT download
+# a missing extension on its own -- confirmed by an actual CI failure:
+# "error WIX0144: The extension 'WixToolset.UI.wixext' could not be
+# found" when nothing had installed it first. An earlier revision of
+# this script tried to check first with `wix extension list` and skip
+# `add` if already present, but that check itself exited non-zero with
+# no output on CI (consistent with `list` erroring when no extension
+# is installed at all, rather than printing an empty list) -- so the
+# reliable move is to just always run `add`, which is idempotent: it
+# is a no-op if the extension is already installed, and installs it if
+# not, without needing a working "is it already there" probe first.
+& $wix extension add WixToolset.UI.wixext
+if ($LASTEXITCODE -ne 0) {
+    throw "wix extension add WixToolset.UI.wixext failed with exit code $LASTEXITCODE"
+}
+
 New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
 
 $msiName = "kitt-$ProductVersion-x64.msi"
