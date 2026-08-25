@@ -1,120 +1,125 @@
 # Kitt
 
-**Kitt**, Türkçe Q klavyeni kullanarak Ukraynaca yazabilmeni sağlayan bir
-program. Klavyendeki tuşların sesi Ukraynaca harflere nasıl benziyorsa, o
-mantıkla çalışır — yani ayrı bir Ukraynaca klavye almana, ekranda beliren
-bir klavye uygulaması kullanmana ya da sürekli açık duran bir programa
-ihtiyacın olmaz.
+Kitt, Türkçe Q klavyenizi kullanarak Ukraynaca yazmanızı sağlayan bir
+programdır. Bastığınız tuşun sesi Ukraynaca harfe benziyorsa o harfi
+yazar. Ayrı bir Ukraynaca klavye almanıza, ekran klavyesi kullanmanıza
+ya da sürekli açık duran bir programa ihtiyacınız yoktur.
 
-Kitt kurulduktan sonra, Windows'un normal klavye dili listesine eklenir —
-tıpkı İngilizce ya da başka bir dil klavyesi gibi. Görev çubuğunda ayrı bir
-simgesi yoktur, arka planda çalışmaz; sadece bir klavye dili gibi orada
-durur, sen kullanmak istediğinde seçersin.
+Kurulduktan sonra Windows'un normal klavye dili listesine eklenir, tıpkı
+İngilizce ya da başka bir dil klavyesi gibi. Görev çubuğunda ayrı bir
+simgesi olmaz, arka planda çalışmaz. Sadece listede durur, ihtiyacınız
+olduğunda seçersiniz.
 
 ## Kitt ne değildir
 
-- Klavyeni değiştiren/yeniden düzenleyen bir uygulama değildir.
-- Arka planda sürekli çalışan bir program değildir.
-- İnternet bağlantısı gerektiren bir servis değildir.
-- Ekranda beliren bir sanal klavye değildir.
+- Klavyenizi değiştiren bir uygulama değildir.
+- Arka planda çalışan bir program değildir.
+- İnternet bağlantısı isteyen bir servis değildir.
+- Ekran klavyesi değildir.
 
-Kitt aslında çok küçük iki parçadan oluşur: Windows'un tanıdığı bir klavye
-dosyası, ve bunu bilgisayarına yükleyen basit bir kurulum programı. Teknik
-detaylarla ilgileniyorsan [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md)
-dosyasına bakabilirsin — ama kullanmak için buna hiç gerek yok.
+Kitt aslında iki küçük parçadan oluşur: Windows'un tanıdığı bir klavye
+dosyası ve bunu bilgisayarınıza yükleyen basit bir kurulum programı.
+Teknik detay istiyorsanız [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md)
+dosyasına bakabilirsiniz, ama kullanmak için gerekmiyor.
 
 ## Hangi Windows sürümlerinde çalışır
 
 - Windows 10 (64-bit)
 - Windows 11 (64-bit)
 
-Kitt, **Türkçe Q** klavye düzenini kullananlar içindir — laptop, masaüstü,
-harici, kablosuz fark etmez, hepsi aynı tuş yerleşimini gönderdiği için
-hepsinde aynı şekilde çalışır. **Türkçe F** klavye kullanıyorsan Kitt seni
-karıştırır, çünkü harfler F dizilimine göre değil Q dizilimine göre
-eşlenmiştir. Hangi düzeni kullandığını görmek için:
-**Ayarlar → Saat ve Dil → Dil ve bölge**, klavye listende "Türkçe Q" mu
-"Türkçe F" mi yazdığına bak.
+Kitt, Türkçe Q klavye düzeni için yapıldı. Laptop, masaüstü, harici,
+kablosuz fark etmez, hepsi aynı tuş sinyalini gönderdiği için aynı
+şekilde çalışır. Türkçe F kullanıyorsanız Kitt sizi karıştırır, çünkü
+harfler F değil Q dizilimine göre eşlendi. Bu durumda ya klavyenizi
+Windows üzerinden Türkçe Q'ya çevirmeniz (fiziksel klavyeyi
+değiştirmenize gerek yok, sadece ayardan) ya da Kitt'i kullanmamanız
+gerekir.
 
-## Nasıl kurulur
+Hangi düzeni kullandığınızı görmek için: Ayarlar > Saat ve Dil > Dil ve
+bölge, dilinizin altındaki klavye listesine bakın, "Türkçe Q" mu
+"Türkçe F" mi yazıyor. Bu, aşağıda Kitt'i ekleyeceğiniz listeden farklı
+bir yer; burada kontrol ettiğiniz, tuşlarınıza şu an neyin karşılık
+geldiği.
 
-1. Projenin [Releases](../../releases) sayfasından en güncel
-   `kitt-<sürüm>-x64.msi` dosyasını indir.
-2. İndirdiğin dosyaya çift tıkla. Windows senden izin isteyecek
-   (ekranda "Bu uygulamanın değişiklik yapmasına izin veriyor musun?"
-   gibi bir pencere çıkar) — **Evet** de. Bu normaldir; bir klavye dili
-   eklemek, Windows'un bunu sistemin geneline tanıtmasını gerektirir.
-3. Kurulum sihirbazındaki adımları takip et.
-4. **Kurulum bittikten sonra bilgisayarını yeniden başlat.** Bu önemli —
-   yeniden başlatmadan Kitt, klavye diller arasında geçiş yaptığın kısayolda
-   (Windows tuşu + Boşluk) görünmeyebilir.
-5. Yeniden başlattıktan sonra Kitt'i ekle:
-   **Ayarlar → Saat ve Dil → Dil ve bölge**, kullandığın dilin yanındaki
-   **Klavye ekle** butonuna tıkla, listeden **Kitt**'i seç.
+## Kurulum
 
-Bilgisayarında Python, .NET gibi ekstra bir program kurulu olmasına gerek
-yok — Kitt kendi başına çalışan, hazır derlenmiş küçük bir dosyadır.
+1. [Releases](../../releases) sayfasından en güncel
+   `kitt-<sürüm>-x64.msi` dosyasını indirin.
+2. Dosyaya çift tıklayın. Windows izin isteyecek, Evet deyin. Bu normal,
+   çünkü bir klavye dili eklemek Windows'un bunu sisteme tanıtmasını
+   gerektiriyor.
+3. Kurulum sihirbazını takip edin.
+4. Kurulum bittikten sonra bilgisayarınızı yeniden başlatın. Bu adımı
+   atlarsanız Kitt, klavyeler arası geçiş kısayolunda (Windows tuşu +
+   Boşluk) görünmeyebilir.
+5. Yeniden başlattıktan sonra Kitt'i ekleyin: Ayarlar > Saat ve Dil >
+   Dil ve bölge, dilinizin yanındaki Klavye ekle butonuna tıklayın,
+   listeden Kitt'i seçin.
 
-## Nasıl kullanılır
+Bilgisayarınızda Python, .NET gibi ekstra bir şey kurulu olmasına
+gerek yok. Kitt kendi başına çalışan, hazır derlenmiş küçük bir
+dosyadır.
 
-Kitt eklendikten sonra, diğer klavye dilleri arasında nasıl geçiş
-yapıyorsan Kitt'e de öyle geçersin:
+## Kullanım
 
-- **Windows tuşu + Boşluk** — eklediğin klavye dilleri arasında sırayla
-  geçiş yapar.
-- Ya da görev çubuğunun sağ altındaki dil göstergesine tıklayıp
-  listeden **Kitt**'i seç.
+Kitt eklendikten sonra diğer klavye dilleri arasında nasıl geçiş
+yapıyorsanız Kitt'e de öyle geçersiniz:
 
-Kitt seçiliyken yazmak, normal bir klavye gibi çalışır:
+- Windows tuşu + Boşluk, eklediğiniz diller arasında sırayla geçer.
+- Ya da görev çubuğundaki dil göstergesine tıklayıp Kitt'i seçin.
 
-- **Shift** tuşuyla birlikte basarsan büyük harf çıkar.
-- **Caps Lock** beklediğin gibi çalışır.
-- Virgül, nokta gibi noktalama işaretleri klavyendeki yerlerinde kalır,
-  değişmez.
-- Ukraynacada birlikte söylenen bazı sesli harfler (`я`, `ю`, `є`, `ї`)
-  için önce **Y** tuşuna, sonra ilgili sesli harfe basman gerekir
-  (yalnız `Y`'ye basıp bırakırsan `й` çıkar). Bu, o harflerin Ukraynacada
+Kitt seçiliyken yazmak normal bir klavye gibi çalışır:
+
+- Shift ile birlikte basarsanız büyük harf çıkar.
+- Caps Lock beklediğiniz gibi çalışır.
+- Virgül, nokta gibi noktalama işaretleri yerinde kalır, değişmez.
+- Ukraynacada birlikte söylenen bazı sesli harfler (я, ю, є, ї) için
+  önce Y tuşuna, sonra ilgili sesli harfe basmanız gerekir. Sadece
+  Y'ye basıp bırakırsanız й çıkar. Bu, o harflerin Ukraynacada
   gerçekten nasıl söylendiğine dayanıyor.
 
 Hangi tuşun hangi Ukraynaca harfi ürettiğinin tam listesi için
-[`docs/mapping.md`](docs/mapping.md) dosyasına bakabilirsin.
+[`docs/mapping.md`](docs/mapping.md) dosyasına bakabilirsiniz.
 
-## Nasıl kaldırılır
+## Kaldırma
 
-Kitt'i diğer programlar gibi kaldırabilirsin:
-**Ayarlar → Uygulamalar → Yüklü uygulamalar**, listede **Kitt**'i bul,
-**Kaldır**'a tıkla. Bu işlem yalnızca Kitt'i siler; başka hiçbir klavye
-dilini ya da ayarını etkilemez.
+Kaldırmadan önce mümkünse Kitt'ten başka bir klavye diline geçin
+(Windows tuşu + Boşluk). Kitt o an aktif olarak kullanılıyorsa Windows
+silinecek dosyayı kilitli tutabilir ve kaldırma işlemi yeniden başlatma
+isteyebilir.
+
+Kitt'i diğer programlar gibi kaldırabilirsiniz: Ayarlar > Uygulamalar
+> Yüklü uygulamalar, listede Kitt'i bulun, Kaldır'a tıklayın. Bu işlem
+yalnızca Kitt'i siler, başka klavye diline ya da ayarına dokunmaz.
 
 ## Gizlilik
 
-Kitt hiçbir şeyini toplamaz:
+Kitt hiçbir şey toplamaz.
 
-- Ne yazdığını görmez, kaydetmez.
-- İnternete hiç bağlanmaz.
-- Kullanım istatistiği, hata raporu gibi hiçbir veri göndermez.
-- Hesap oluşturmanı istemez.
+- Ne yazdığınızı görmez, kaydetmez.
+- İnternete bağlanmaz.
+- Kullanım istatistiği ya da hata raporu göndermez.
+- Hesap oluşturmanızı istemez.
 
-Kitt, aralarında hiçbir aracı olmadan doğrudan Windows'un kendi klavye
-sistemiyle çalışan basit bir dosyadır — teknik detay için
-`KITT_ARCHITECTURE.md` dosyasındaki "Security Model" ve "Privacy"
-bölümlerine bakabilirsin.
+Kitt, aracı olmadan doğrudan Windows'un kendi klavye sistemiyle çalışan
+basit bir dosyadır. Teknik detay için `KITT_ARCHITECTURE.md`
+dosyasındaki "Security Model" ve "Privacy" bölümlerine bakabilirsiniz.
 
 ---
 
 ## Geliştirme
 
-Bu bölüm, Kitt'in kodunu incelemek ya da geliştirmek isteyenler için.
+Bu bölüm Kitt'in kodunu incelemek ya da geliştirmek isteyenler için.
 
-Kitt'in klavye eşlemesi tek bir YAML dosyasında tanımlanır; geri kalan her
-şey (Windows'un anlayacağı dosyalar, dokümantasyon, testler) bundan
-otomatik üretilir. Başlamak için:
+Kitt'in klavye eşlemesi tek bir YAML dosyasında tanımlanır, geri kalan
+her şey (Windows dosyaları, dokümantasyon, testler) bundan otomatik
+üretilir. Başlamak için:
 
-- [`installer/README.md`](installer/README.md) — kurulum paketini (MSI)
-  nasıl derleyip inceleyeceğin.
-- [`tools/`](tools/) — `build.ps1` (`kittua.dll`'i derler), `package.ps1`
+- [`installer/README.md`](installer/README.md): kurulum paketini (MSI)
+  nasıl derleyip inceleyeceğiniz.
+- [`tools/`](tools/): `build.ps1` (`kittua.dll`'i derler), `package.ps1`
   (MSI'ı derler), `clean.ps1` (derleme çıktısını temizler).
-- [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md) — tam mimari, build
+- [`KITT_ARCHITECTURE.md`](KITT_ARCHITECTURE.md): tam mimari, build
   sistemi, test stratejisi ve sürümleme politikası.
 
 Hızlı yerel geliştirme döngüsü:
@@ -127,3 +132,7 @@ pytest tests/ -v
 ./tools/build.ps1
 ./tools/package.ps1
 ```
+
+## Lisans
+
+Kitt, [MIT Lisansı](LICENSE) ile dağıtılır.
