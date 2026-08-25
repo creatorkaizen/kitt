@@ -68,15 +68,48 @@ function Find-CMake {
 
 function Find-VsGenerator {
     # Prefer whatever Visual Studio / Build Tools version is actually
-    # installed. We only need the CMake "generator name", not vcvars,
-    # so this avoids the PowerShell/vswhere quirks noted in developer
-    # notes for calling vcvars64.bat directly.
+    # installed. A fixed list of "C:\...\2019\BuildTools" /
+    # "...\2022\Community" style paths is not reliable: GitHub Actions'
+    # windows-latest runner ships VS2022 Enterprise at a path this list
+    # never checked, so `build.ps1` failed there with "No Visual Studio
+    # / Build Tools installation found" despite VS actually being
+    # present - confirmed by an actual CI run.
+    #
+    # vswhere.exe is the tool Microsoft ships specifically to answer
+    # "what VS is installed and where" without guessing paths or
+    # editions; it has shipped alongside every VS/Build Tools install
+    # since VS2017, in a fixed location that itself never changes.
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    if (Test-Path $vswhere) {
+        $installPath = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath 2>$null
+        if ($installPath) {
+            $versionYear = & $vswhere -latest -products * `
+                -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+                -property catalog_productLineVersion 2>$null
+            switch ($versionYear) {
+                "2019" { return "Visual Studio 16 2019" }
+                "2022" { return "Visual Studio 17 2022" }
+                default {
+                    # Fall through to the path-based fallback below rather
+                    # than guess at a generator name for an unrecognized
+                    # VS version.
+                }
+            }
+        }
+    }
+
+    # Fallback for machines without vswhere.exe (older Build Tools-only
+    # installs sometimes omit it) - same fixed-path probing as before.
     $vsRoots = @(
         @{ Path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"; Generator = "Visual Studio 16 2019" },
         @{ Path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community";  Generator = "Visual Studio 16 2019" },
         @{ Path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional"; Generator = "Visual Studio 16 2019" },
         @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\BuildTools"; Generator = "Visual Studio 17 2022" },
-        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Community"; Generator = "Visual Studio 17 2022" }
+        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Community"; Generator = "Visual Studio 17 2022" },
+        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Professional"; Generator = "Visual Studio 17 2022" },
+        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"; Generator = "Visual Studio 17 2022" }
     )
     foreach ($root in $vsRoots) {
         if (Test-Path $root.Path) {
