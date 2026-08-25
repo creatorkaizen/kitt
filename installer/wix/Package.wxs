@@ -63,9 +63,27 @@
     <!-- MSI media: everything embedded in a single cab inside the .msi. -->
     <MediaTemplate EmbedCab="yes" />
 
-    <!-- Installation directory tree: %ProgramFiles%\Kitt\ -->
-    <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="Kitt" />
+    <!--
+      Installation directory: %SystemRoot%\System32\ (WiX's
+      "System64Folder" resolves to the real System32 on an x64
+      package, not the WOW64 redirector path — this package is
+      x64-only, per architecture section 23).
+
+      This is NOT the usual place to install an application, but
+      Kitt is not an application: it is a Windows keyboard-layout
+      DLL, and Windows only activates one if its "Layout File"
+      registry value resolves inside System32. Installing to
+      %ProgramFiles% instead was tried first and confirmed broken on
+      a real machine: the layout appeared in Settings' language list
+      (registry-only visibility) but never showed up in the taskbar's
+      actual input-switcher menu, because win32kbase.sys/ctfmon
+      resolve "Layout File" by filename only, inside System32 — see
+      installer/README.md and KITT_ARCHITECTURE.md section 35 for the
+      full story. INSTALLFOLDER keeps its name for Components.wxs to
+      reference; only what it resolves to changed.
+    -->
+    <StandardDirectory Id="System64Folder">
+      <Directory Id="INSTALLFOLDER" />
     </StandardDirectory>
 
     <!-- Payload defined in Components.wxs, pulled in as a single Feature. -->

@@ -89,7 +89,7 @@
           <RegistryValue Type="string" Name="Layout File" Value="kittua.dll" KeyPath="yes" />
 
           <!-- Human-readable name shown in Windows language/input-switcher UI. -->
-          <RegistryValue Type="string" Name="Layout Text" Value="Kitt" />
+          <RegistryValue Type="string" Name="Layout Text" Value="Kitt Anımsatıcı Klavye" />
 
           <!--
             Layout Id: a 4-hex-digit ID Windows uses internally

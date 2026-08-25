@@ -28,6 +28,14 @@ dosyasına bakabilirsin — ama kullanmak için buna hiç gerek yok.
 - Windows 10 (64-bit)
 - Windows 11 (64-bit)
 
+Kitt, **Türkçe Q** klavye düzenini kullananlar içindir — laptop, masaüstü,
+harici, kablosuz fark etmez, hepsi aynı tuş yerleşimini gönderdiği için
+hepsinde aynı şekilde çalışır. **Türkçe F** klavye kullanıyorsan Kitt seni
+karıştırır, çünkü harfler F dizilimine göre değil Q dizilimine göre
+eşlenmiştir. Hangi düzeni kullandığını görmek için:
+**Ayarlar → Saat ve Dil → Dil ve bölge**, klavye listende "Türkçe Q" mu
+"Türkçe F" mi yazdığına bak.
+
 ## Nasıl kurulur
 
 1. Projenin [Releases](../../releases) sayfasından en güncel
