@@ -66,60 +66,6 @@ function Find-CMake {
     throw "cmake.exe not found. Install CMake or Visual Studio Build Tools' CMake component."
 }
 
-function Find-VsGenerator {
-    # Prefer whatever Visual Studio / Build Tools version is actually
-    # installed. A fixed list of "C:\...\2019\BuildTools" /
-    # "...\2022\Community" style paths is not reliable: GitHub Actions'
-    # windows-latest runner ships VS2022 Enterprise at a path this list
-    # never checked, so `build.ps1` failed there with "No Visual Studio
-    # / Build Tools installation found" despite VS actually being
-    # present - confirmed by an actual CI run.
-    #
-    # vswhere.exe is the tool Microsoft ships specifically to answer
-    # "what VS is installed and where" without guessing paths or
-    # editions; it has shipped alongside every VS/Build Tools install
-    # since VS2017, in a fixed location that itself never changes.
-    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-    if (Test-Path $vswhere) {
-        $installPath = & $vswhere -latest -products * `
-            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-            -property installationPath 2>$null
-        if ($installPath) {
-            $versionYear = & $vswhere -latest -products * `
-                -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-                -property catalog_productLineVersion 2>$null
-            switch ($versionYear) {
-                "2019" { return "Visual Studio 16 2019" }
-                "2022" { return "Visual Studio 17 2022" }
-                default {
-                    # Fall through to the path-based fallback below rather
-                    # than guess at a generator name for an unrecognized
-                    # VS version.
-                }
-            }
-        }
-    }
-
-    # Fallback for machines without vswhere.exe (older Build Tools-only
-    # installs sometimes omit it) - same fixed-path probing as before.
-    $vsRoots = @(
-        @{ Path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"; Generator = "Visual Studio 16 2019" },
-        @{ Path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community";  Generator = "Visual Studio 16 2019" },
-        @{ Path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional"; Generator = "Visual Studio 16 2019" },
-        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\BuildTools"; Generator = "Visual Studio 17 2022" },
-        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Community"; Generator = "Visual Studio 17 2022" },
-        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Professional"; Generator = "Visual Studio 17 2022" },
-        @{ Path = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"; Generator = "Visual Studio 17 2022" }
-    )
-    foreach ($root in $vsRoots) {
-        if (Test-Path $root.Path) {
-            return $root.Generator
-        }
-    }
-
-    throw "No Visual Studio / Build Tools installation found. Install MSVC Build Tools with the C++ workload."
-}
-
 Write-Host "Kitt build" -ForegroundColor Green
 Write-Host "Repo root: $RepoRoot"
 
@@ -167,13 +113,20 @@ else {
 $cmake = Find-CMake
 Write-Host "Using cmake: $cmake"
 
-$generator = Find-VsGenerator
-Write-Host "Using generator: $generator (x64)"
-
+# No -G here: let CMake auto-detect the installed Visual Studio
+# generator itself, rather than this script guessing a generator
+# string from a fixed list of install paths. A hand-maintained path
+# list is not reliable across machines/CI images - GitHub Actions'
+# windows-latest runner ships VS2022 Enterprise at a path an earlier
+# version of this script never checked, and even querying
+# vswhere.exe for the "VC.Tools.x86.x64" component came back empty
+# there, confirmed by an actual CI run. CMake's own generator
+# detection is exactly the mechanism `cmake --help` documents for
+# "pick whatever's installed" and needs no guesswork here.
 New-Item -ItemType Directory -Path $BuildDir -Force | Out-Null
 
 Write-Step "Configuring CMake project"
-& $cmake -S $RepoRoot -B $BuildDir -G $generator -A x64
+& $cmake -S $RepoRoot -B $BuildDir -A x64
 if ($LASTEXITCODE -ne 0) {
     throw "CMake configure failed with exit code $LASTEXITCODE"
 }
